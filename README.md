@@ -1,4 +1,4 @@
-# 行测真题库 · proxymax.tech
+# 行测真题库 · lx1120.me
 
 一个无需云服务器的手机刷题阅读网站，基于 Quartz 5 和 GitHub Pages。
 
@@ -29,27 +29,19 @@ npx quartz build --serve
 
 ## GitHub Pages 发布
 
-1. 打开仓库 **Settings → Pages**，将 **Source** 设为 **GitHub Actions**。
-2. 向 `main` 推送网站代码，或在 Actions 手动运行 **Deploy question bank**。
-3. 工作流自动下载指定题库、测试、构建、验证本地链接，再部署 `public`。
-4. 初始地址为 `https://xie-good.github.io/xingce-site/`。
+1. 网站源码保存在 `xie-good/xingce-site`，正式首页由 `xie-good/xie-good.github.io` 发布。
+2. 根站点仓库 **Settings → Pages → Source** 使用 **GitHub Actions**，Custom domain 保持 `lx1120.me`。
+3. 根站点的 **Publish Xingce homepage** 工作流下载固定版本的网站源码和题库，测试、构建并发布到根路径。
+4. 正式入口为 `https://lx1120.me/`，不需要添加 `/xingce-site/`；原来的 `/pyref/` 内容继续保留。
+5. 网站源码升级后，同步根站点工作流中的源码提交号，再运行发布工作流。
 
-## 绑定 proxymax.tech
+## 域名与 HTTPS
 
-先在 **Settings → Pages → Custom domain** 填写 `proxymax.tech` 并保存，再配置域名 DNS。
+`lx1120.me` 已使用 GitHub Pages 的域名解析，不需要为本次首页替换更改 DNS。
 
-根域名添加以下四条 A 记录；主机名填 `@`，或按注册商提示留空表示根域名。
+等待根站点 Pages 设置中的证书签发完成，再勾选 **Enforce HTTPS**。证书申请期间不要反复删除并重新添加域名。
 
-| 类型 | 主机名 | 值              |
-| ---- | ------ | --------------- |
-| A    | @      | 185.199.108.153 |
-| A    | @      | 185.199.109.153 |
-| A    | @      | 185.199.110.153 |
-| A    | @      | 185.199.111.153 |
-
-可选：`www` 添加 CNAME，值为 `xie-good.github.io`。保留已有 `lx`、邮件及其他无关子域名记录。根域名若已有网站记录，确认后再替换冲突值。
-
-等待 GitHub DNS 检查和证书就绪后勾选 **Enforce HTTPS**。无需更换 Nameservers。
+本次不再使用 `proxymax.tech` 作为入口，无需继续添加它的 DNS 记录。
 
 参考：[GitHub 官方域名说明](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site)、[Quartz 官方发布说明](https://quartz.jzhao.xyz/hosting)。
 

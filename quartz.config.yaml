@@ -7,7 +7,7 @@ configuration:
   prefetch: off
   analytics: null
   locale: zh-CN
-  baseUrl: proxymax.tech
+  baseUrl: lx1120.me
   ignorePatterns: [private, templates, .obsidian]
   theme:
     fontOrigin: local
