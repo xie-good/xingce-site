@@ -1,0 +1,69 @@
+<section class="home-hero" aria-labelledby="home-title">
+  <p class="eyebrow">每天一点，稳步向前</p>
+  <h1 id="home-title">把每一道真题，<br />变成下一次进步。</h1>
+  <p class="hero-description">58,890 道行测真题。随时搜索，按模块练习，想清楚再看解析。</p>
+</section>
+
+<section class="search-panel" aria-labelledby="search-title">
+  <h2 id="search-title">找一道题</h2>
+  <form id="question-search" role="search">
+    <label for="search-query">搜索题干、选项或试卷名称</label>
+    <div class="search-row">
+      <input
+        id="search-query"
+        name="q"
+        type="search"
+        placeholder="例如：增长率、逻辑判断、2026 国考"
+        autocomplete="off"
+      /><button type="submit">搜索题目</button>
+    </div>
+    <div class="search-filters">
+      <label for="search-module"
+        >模块<select id="search-module" name="module">
+          <option value="">全部模块</option>
+          {{MODULE_OPTIONS}}
+        </select></label
+      >
+      <label for="search-year"
+        >年份<select id="search-year" name="year">
+          <option value="">全部年份</option>
+          {{YEAR_OPTIONS}}
+        </select></label
+      >
+      <label for="search-region"
+        >地区<select id="search-region" name="region">
+          <option value="">全部地区</option>
+          {{REGION_OPTIONS}}
+        </select></label
+      >
+    </div>
+  </form>
+  <p id="search-status" role="status" aria-live="polite">
+    输入关键词，或选择模块后查看题目。搜索索引仅在需要时加载。
+  </p>
+  <ol id="search-results" class="search-results"></ol>
+  <nav id="search-pagination" class="search-pagination" aria-label="搜索结果翻页" hidden>
+    <button id="previous-page" type="button">上一页</button><span id="page-number"></span
+    ><button id="next-page" type="button">下一页</button>
+  </nav>
+  <noscript
+    ><p>关键词搜索需要启用 JavaScript。你仍可通过下面六个模块阅读全部试卷和解析。</p></noscript
+  >
+</section>
+
+<section aria-labelledby="modules-title">
+  <div class="section-heading">
+    <h2 id="modules-title">按模块开始</h2>
+    <p>六大模块 · 515 套试卷</p>
+  </div>
+  <div class="module-grid">{{MODULE_CARDS}}</div>
+</section>
+
+<footer class="site-footer">
+  <p>先独立思考，再点击「查看答案与解析」。</p>
+  <p>
+    <a href="关于题库.html">题库来源与说明</a><span> · </span
+    ><a href="https://github.com/xie-good/xingce-site">网站源码</a>
+  </p>
+</footer>
+<script type="module" src="site-assets/site-search.js"></script>

@@ -1,0 +1,78 @@
+# yaml-language-server: $schema=./quartz/plugins/quartz-plugins.schema.json
+configuration:
+  pageTitle: 行测真题库
+  pageTitleSuffix: ""
+  enableSPA: false
+  enablePopovers: false
+  prefetch: off
+  analytics: null
+  locale: zh-CN
+  baseUrl: proxymax.tech
+  ignorePatterns: [private, templates, .obsidian]
+  theme:
+    fontOrigin: local
+    cdnCaching: false
+    typography:
+      header: Microsoft YaHei
+      body: Microsoft YaHei
+      code: SFMono-Regular
+    colors:
+      lightMode:
+        light: "#f6f8f7"
+        lightgray: "#dce5e1"
+        gray: "#74817d"
+        darkgray: "#374740"
+        dark: "#162e25"
+        secondary: "#17624e"
+        tertiary: "#0f5341"
+        highlight: "#e8f1ed"
+        textHighlight: "#f5e7aa"
+      darkMode:
+        light: "#15251f"
+        lightgray: "#374b42"
+        gray: "#a8b8b0"
+        darkgray: "#d8e6de"
+        dark: "#eef6f1"
+        secondary: "#90d1b6"
+        tertiary: "#b0e6ce"
+        highlight: "#293e33"
+        textHighlight: "#605321"
+  links:
+    markdownLinkResolution: absolute
+    lazyLoad: true
+    externalLinkIcon: false
+  contentIndex:
+    enabled: false
+plugins:
+  - source: "@quartz-community/github-flavored-markdown"
+    enabled: true
+    order: 30
+  - source: "@quartz-community/obsidian-flavored-markdown"
+    enabled: true
+    order: 40
+    options:
+      enableInHtmlEmbed: false
+      enableCheckbox: false
+  - source: "@quartz-community/description"
+    enabled: true
+    order: 70
+  - source: "@quartz-community/content-page"
+    enabled: true
+  - source: "@quartz-community/article-title"
+    enabled: true
+    layout:
+      position: beforeBody
+      priority: 10
+      condition: not-index
+  - source: "@quartz-community/page-title"
+    enabled: true
+    layout:
+      position: header
+      priority: 10
+layout:
+  byPageType:
+    "404":
+      positions:
+        beforeBody: []
+        left: []
+        right: []

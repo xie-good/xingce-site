@@ -1,0 +1,7 @@
+{
+  "repository": "https://github.com/ERRRC/xingcezhenti.git",
+  "revision": "278984401124db40da5163a31275b8deb9c282f4",
+  "expectedQuestions": 58890,
+  "expectedPapers": 515,
+  "missingImages": ["formula-4daf9a3762c10376.png", "formula-2c7a9ff6774e3af2.png"]
+}
