@@ -32,6 +32,27 @@ export function plainText(markdown) {
     .trim()
 }
 
+function renderQuestion(block, qid) {
+  // The next material belongs outside this question, even when it precedes the next question heading.
+  const materialStart = block.search(/^## 材料[^\n]*$/m)
+  const question = materialStart < 0 ? block : block.slice(0, materialStart)
+  const material = materialStart < 0 ? "" : block.slice(materialStart)
+  const stem = question.split(/^\*\*答案\*\*/m)[0]
+  const options = [...stem.matchAll(/^- \*\*([A-H])\*\*\./gm)].map((match) => match[1]).join("")
+  const answer = question.match(/^\*\*答案\*\*\s*[：:]\s*([A-H]+)\s*$/m)?.[1] || ""
+  const markedQuestion = stem.replace(/^(- )(?=\*\*([A-H])\*\*\.)/gm, (_, prefix, letter) =>
+    `${prefix}<span class="option-marker" data-option="${letter}"></span> `,
+  ) + question.slice(stem.length)
+  const body = markedQuestion
+    .replace(/<sub>qid \d+ · ([^<]*)<\/sub>/, "$1")
+    .replace(/^(.*\*\*[A-H]\*\*\.[^\n]*?)[\u3000 \t]*✅[ \t]*$/gm, "$1")
+    .replace(
+      /(^\*\*答案\*\*[\s\S]*?)(?=\n---(?:\n|$)|(?![\s\S]))/gm,
+      (text) => `<details class="answer">\n<summary>查看答案与解析</summary>\n\n${text.trim()}\n\n</details>\n`,
+    )
+  return `<section class="practice-question question-anchor" id="q-${qid}" data-options="${options}" data-answer="${answer}">\n\n${body.trim()}\n\n</section>\n\n${material}`
+}
+
 export function convertPaper(markdown, missingImages = []) {
   if (
     /<(?:script|iframe|object|embed)\b|\bon\w+\s*=|(?:src|href)\s*=\s*["']?\s*javascript:/i.test(
@@ -51,19 +72,10 @@ export function convertPaper(markdown, missingImages = []) {
   if (questions.length !== Number(data["题数"])) {
     throw new Error(`Question count mismatch: ${data["试卷"]}`)
   }
-  let body = content
-    .replace(/^# [^\n]*\n+/, "")
-    .replace(
-      heading,
-      (line, number, qid) =>
-        `<span class="question-anchor" id="q-${qid}"></span>\n\n${line.replace(/<sub>qid \d+ · ([^<]*)<\/sub>/, "$1")}`,
-    )
-    .replace(/^(- \*\*[A-H]\*\*\.[^\n]*?)[\u3000 \t]*✅[ \t]*$/gm, "$1")
-    .replace(
-      /(^\*\*答案\*\*[\s\S]*?)(?=\n---(?:\n|$)|(?![\s\S]))/gm,
-      (answer) =>
-        `<details class="answer">\n<summary>查看答案与解析</summary>\n\n${answer.trim()}\n\n</details>\n`,
-    )
+  let body = content.slice(0, matches[0]?.index).replace(/^# [^\n]*\n+/, "")
+  for (const [index, match] of matches.entries()) {
+    body += renderQuestion(content.slice(match.index, matches[index + 1]?.index), match[2])
+  }
   for (const image of missingImages) body = body.replaceAll(image, "source-missing.svg")
   return { data, body, questions }
 }
@@ -134,7 +146,8 @@ async function importBank() {
         description: `${year}年 ${region} ${label} ${questions.length}题，含答案与解析`,
       }
       const nav = `[返回搜索](index) · [${label}全部试卷](${directory}/README)\n\n`
-      await writeFile(join("content", directory, file), matter.stringify(nav + body, frontmatter))
+      const quiz = '\n<script type="module" src="../site-assets/quiz.js"></script>\n'
+      await writeFile(join("content", directory, file), matter.stringify(nav + body + quiz, frontmatter))
     }
     await writeFile(`content/site-assets/search-${id}.json`, JSON.stringify(shard))
     const moduleYears = [...new Set(shard.papers.map((paper) => paper.year))].sort().reverse()
@@ -210,7 +223,7 @@ async function importBank() {
   await writeFile(
     "content/关于题库.md",
     matter.stringify(
-      `题库来自 [ERRRC/xingcezhenti](https://github.com/ERRRC/xingcezhenti)，本网站保留原题及解析，不自动生成答案。\n\n当前固定版本：\`${source.revision}\`。共 ${manifest.totalPapers} 套卷、${manifest.totalQuestions} 题。\n\n原仓库注明有两张公式图片缺失，网站在相应位置显示“原题库此处公式缺失”，不推测公式内容。个别题目原答案缺失时也保留原样。\n\n本网站提供关键词搜索和折叠答案阅读，不含账号、云端进度或答题评分。\n\n[返回搜索](index)\n`,
+      `题库来自 [ERRRC/xingcezhenti](https://github.com/ERRRC/xingcezhenti)，本网站保留原题及解析，不自动生成答案。\n\n当前固定版本：\`${source.revision}\`。共 ${manifest.totalPapers} 套卷、${manifest.totalQuestions} 题。\n\n原仓库注明有两张公式图片缺失，网站在相应位置显示“原题库此处公式缺失”，不推测公式内容。原题选项或答案缺失时保留原样并提示，不补造内容、不自动判分。\n\n支持关键词搜索、单选与多选、逐题提交判分和查看解析。多选题须与原答案完全一致才判为正确。不含账号或云端进度，刷新页面会清除本页作答。未启用 JavaScript 时仍可展开答案阅读。\n\n[返回搜索](index)\n`,
       { title: "关于题库" },
     ),
   )

@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import test from "node:test"
 import { convertPaper } from "./import-bank.mjs"
 import { searchQuestions } from "../site/assets/search-core.js"
+import { gradeAnswer } from "../site/assets/quiz-core.js"
 
 const paper = `---
 试卷: 测试真题
@@ -62,6 +63,49 @@ test("answers are folded, answer hints removed, shared material and anchors surv
 test("mismatched source counts and active HTML fail explicitly", () => {
   assert.throws(() => convertPaper(paper.replace("题数: 2", "题数: 3")), /count mismatch/)
   assert.throws(() => convertPaper(paper + "<script>alert(1)</script>"), /active HTML/)
+})
+
+test("question metadata supports native single and multiple choice without leaking answers in search", () => {
+  const result = convertPaper(paper.replace("**答案**：A", "**答案**：AB"))
+  assert.match(result.body, /id="q-123" data-options="AB" data-answer="AB"/)
+  assert.match(result.body, /id="q-124" data-options="AB" data-answer="B"/)
+  assert.equal((result.body.match(/class="option-marker"/g) || []).length, 4)
+  assert.equal((result.body.match(/<section class="practice-question/g) || []).length, 2)
+  assert.equal((result.body.match(/<\/section>/g) || []).length, 2)
+  assert.ok(!result.questions[0].text.includes("答案"))
+})
+
+test("the next shared material remains outside the preceding question and answer", () => {
+  const result = convertPaper(paper.replace("### 第 2 题", "## 材料 2\n\n新的共同材料。\n\n### 第 2 题"))
+  const questionEnd = result.body.indexOf("</section>")
+  const materialStart = result.body.indexOf("## 材料 2")
+  assert.ok(questionEnd < materialStart)
+  assert.ok(materialStart < result.body.indexOf('id="q-124"'))
+  assert.ok(result.body.includes("第二个解析。\n\n</details>"))
+})
+
+test("missing source options and answers remain explicit instead of being invented", () => {
+  const result = convertPaper(paper.replace(/^- \*\*[AB]\*\*\.[^\n]*\n/gm, "").replace("**答案**：A", "**答案**：（缺）"))
+  assert.match(result.body, /id="q-123" data-options="" data-answer=""/)
+  assert.ok(result.body.includes("**答案**：（缺）"))
+})
+
+test("single-choice answers are graded only after a selection", () => {
+  assert.equal(gradeAnswer([], "B", "ABCD"), "empty")
+  assert.equal(gradeAnswer(["B"], "B", "ABCD"), "correct")
+  assert.equal(gradeAnswer(["A"], "B", "ABCD"), "incorrect")
+})
+
+test("multiple-choice answers require the exact set, regardless of order", () => {
+  assert.equal(gradeAnswer(["C", "A"], "AC", "ABCD"), "correct")
+  assert.equal(gradeAnswer(["A"], "AC", "ABCD"), "incorrect")
+  assert.equal(gradeAnswer(["A", "B", "C"], "AC", "ABCD"), "incorrect")
+  assert.equal(gradeAnswer(["A", "C", "C"], "AC", "ABCD"), "correct")
+})
+
+test("missing or inconsistent original answers are not scored", () => {
+  assert.equal(gradeAnswer(["A"], "", "ABCD"), "ungraded")
+  assert.equal(gradeAnswer(["A"], "H", "ABCD"), "ungraded")
 })
 
 const shard = {
